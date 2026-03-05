@@ -67,16 +67,29 @@ cursor:pointer;
 @media (max-width:700px){
 
 .timeline{
-grid-template-columns:1fr;
+display:flex;
+flex-direction:column;
+gap:10px;
 }
 
 .hour{
-text-align:left;
+display:none;
 }
 
 .cell{
+height:60px;
+font-size:20px;
+border-radius:14px;
+padding:0 16px;
+display:flex;
 justify-content:space-between;
-padding:0 15px;
+align-items:center;
+}
+
+.cell::before{
+content:attr(data-hour);
+opacity:.7;
+font-size:14px;
 }
 
 }
@@ -153,7 +166,7 @@ let i=0
 
 for(let h=start;h<=end;h++){
 
-let label=(h>12?h-12:h)+(h>=12?"PM":"AM")
+let label=(h>12?h-12:h)+":00 "+(h>=12?"PM":"AM")
 
 let hour=document.createElement("div")
 hour.className="hour"
@@ -161,6 +174,8 @@ hour.textContent=label
 
 let cell=document.createElement("div")
 cell.className="cell"
+cell.dataset.hour = label
+
 
 if(saved[i]){cell.textContent=saved[i];style(cell)}
 
