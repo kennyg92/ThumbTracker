@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Thumb Tracker</title>
+
+<style>
+
+body{
+font-family:system-ui;
+background:#0f172a;
+color:white;
+display:flex;
+justify-content:center;
+padding:30px;
+}
+
+.app{width:900px}
+
+.header{
+display:flex;
+justify-content:space-between;
+margin-bottom:20px;
+}
+
+.timeline{
+display:grid;
+grid-template-columns:repeat(13,1fr);
+gap:10px;
+}
+
+.hour{
+font-size:12px;
+text-align:center;
+opacity:.7;
+}
+
+.cell{
+height:60px;
+border-radius:12px;
+background:#1e293b;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:24px;
+cursor:pointer;
+transition:.15s;
+}
+
+.cell:hover{background:#334155}
+
+.good{background:#065f46}
+.bad{background:#7f1d1d}
+
+.score{margin-top:15px;opacity:.8}
+
+button{
+background:#334155;
+border:none;
+padding:6px 12px;
+color:white;
+border-radius:6px;
+cursor:pointer;
+}
+
+@media(max-width:700px){
+
+.timeline{
+grid-template-columns:1fr;
+}
+
+.hour{
+text-align:left;
+margin-top:10px;
+}
+
+.cell{
+justify-content:space-between;
+padding:0 15px;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="header">
+<h2>Thumb Tracker</h2>
+<div>
+<input type="date" id="date">
+<button onclick="resetDay()">Reset</button>
+</div>
+</div>
+
+<div id="timeline" class="timeline"></div>
+
+<div id="score" class="score"></div>
+
+</div>
+
+<script>
+
+const start=8,end=20
+const timeline=document.getElementById("timeline")
+const score=document.getElementById("score")
+const date=document.getElementById("date")
+
+date.value=new Date().toISOString().split("T")[0]
+
+const key=()=> "grid-"+date.value
+
+function load(){
+return JSON.parse(localStorage.getItem(key())||"[]")
+}
+
+function save(){
+const data=[]
+document.querySelectorAll(".cell").forEach(c=>data.push(c.textContent))
+localStorage.setItem(key(),JSON.stringify(data))
+updateScore()
+}
+
+function style(cell){
+cell.classList.remove("good","bad")
+if(cell.textContent==="✔") cell.classList.add("good")
+if(cell.textContent==="✖") cell.classList.add("bad")
+}
+
+function updateScore(){
+
+let good=0,bad=0
+
+document.querySelectorAll(".cell").forEach(c=>{
+if(c.textContent==="✔") good++
+if(c.textContent==="✖") bad++
+})
+
+let total=good+bad
+let pct=total?Math.round((good/total)*100):0
+
+score.textContent=`Productivity: ${pct}% (${good} good / ${bad} bad)`
+}
+
+function build(){
+
+timeline.innerHTML=""
+const saved=load()
+let i=0
+
+for(let h=start;h<=end;h++){
+
+let label=(h>12?h-12:h)+(h>=12?"PM":"AM")
+
+let hour=document.createElement("div")
+hour.className="hour"
+hour.textContent=label
+
+let cell=document.createElement("div")
+cell.className="cell"
+
+if(saved[i]){cell.textContent=saved[i];style(cell)}
+
+cell.onclick=()=>{
+
+if(cell.textContent==="") cell.textContent="✔"
+else if(cell.textContent==="✔") cell.textContent="✖"
+else cell.textContent=""
+
+style(cell)
+save()
+
+}
+
+timeline.appendChild(hour)
+timeline.appendChild(cell)
+
+i++
+
+}
+
+updateScore()
+
+}
+
+function resetDay(){
+localStorage.removeItem(key())
+build()
+}
+
+date.onchange=build
+
+build()
+
+</script>
+
+</body>
+</html>
